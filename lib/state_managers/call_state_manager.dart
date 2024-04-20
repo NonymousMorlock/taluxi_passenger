@@ -1,34 +1,36 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:network_communication/network_communication.dart';
 import 'package:real_time_location/real_time_location.dart';
 import 'package:taluxi_common/taluxi_common.dart';
 
 class CallStateManager {
-  final VoIPProvider _voIPPrivider;
-  final AudioPlayer _makingCallAudioPlayer;
-  final AudioPlayer _hangUpAudioPlayer;
-  final _callStateStreamController = StreamController<CallState>();
-  List<Map<String, Coordinates>> _callRecipients;
-  // -1 because it will be incremented when calling event for the first call.
-  var currentRecipientIndex = -1;
-
-  String _currentUserId;
-  var _speakerIsOn = false;
-  var _microphoneIsOn = true;
-
   CallStateManager({
-    VoIPProvider voIPProvider,
-    @required List<Map<String, dynamic>> callRecipients,
-    @required String currenUserId,
+    required List<Map<String, Coordinates>> callRecipients,
+    required String currenUserId,
+    VoIPProvider? voIPProvider,
   })  : _voIPPrivider = voIPProvider ?? VoIPProvider.instance,
         _callRecipients = callRecipients,
         _makingCallAudioPlayer = AudioPlayer(),
         _hangUpAudioPlayer = AudioPlayer(),
         _currentUserId = currenUserId;
 
+  final VoIPProvider _voIPPrivider;
+  final AudioPlayer _makingCallAudioPlayer;
+  final AudioPlayer _hangUpAudioPlayer;
+  final _callStateStreamController = StreamController<CallState>();
+  final List<Map<String, Coordinates>> _callRecipients;
+
+  // -1 because it will be incremented when calling event for the first call.
+  int currentRecipientIndex = -1;
+
+  final String _currentUserId;
+  var _speakerIsOn = false;
+  var _microphoneIsOn = true;
+
   Stream<CallState> get callState => _callStateStreamController.stream;
+
   Stream<VoIPConnectionState> get connectionState =>
       _voIPPrivider.connectionStateStream;
 
@@ -42,7 +44,7 @@ class CallStateManager {
       await callNextRecipient();
       await _hangUpAudioPlayer.initialize(fileName: 'assets/audio/hang_up.mp3');
     } catch (e) {
-      print("\n\n__Call_state_manage error init: $e ___\n\n");
+      debugPrint('\n\n__Call_state_manage error init: $e ___\n\n');
     }
   }
 
@@ -66,30 +68,34 @@ class CallStateManager {
     await _makingCallAudioPlayer.play();
   }
 
-  Future<void> _onCallAccepted() async => await _makingCallAudioPlayer.stop();
+  Future<void> _onCallAccepted() async => _makingCallAudioPlayer.stop();
 
   void _onCallFailed(CallFailureReason reason) {
     if (reason == CallFailureReason.timedOut) {
       _makingCallAudioPlayer.stop();
       _callStateStreamController.add(NoResponse());
-    } else
+    } else {
       _callStateStreamController.add(CallFailed());
+    }
   }
 
-  void _onCallRejected() async {
+  Future<void> _onCallRejected() async {
     await _makingCallAudioPlayer.stop();
     await _hangUpAudioPlayer.play();
     _callStateStreamController.add(CallRejected());
   }
 
   Future<void> _onCallLeft(CallLeaveReason reason) async {
-    _hangUpAudioPlayer.play();
-    await Future.delayed(Duration(seconds: 2)); // Wait the end of hang up sound
+    await _hangUpAudioPlayer.play();
+    await Future<void>.delayed(
+      const Duration(seconds: 2),
+    ); // Wait the end of hang up sound
     if (reason == CallLeaveReason.hangUp) {
       _callStateStreamController.add(CallLeft());
-    } else
+    } else {
       _callStateStreamController
           .add(CallLeft(reason: 'La connexion du conducteur a été perdu'));
+    }
   }
 
   void toggleSpeaker() {
@@ -99,8 +105,8 @@ class CallStateManager {
     _speakerIsOn = !_speakerIsOn;
   }
 
-  void leaveCall() async {
-    _makingCallAudioPlayer.stop();
+  Future<void> leaveCall() async {
+    await _makingCallAudioPlayer.stop();
     await _voIPPrivider.leaveCall();
   }
 
@@ -120,7 +126,7 @@ class CallStateManager {
     await _voIPPrivider.destroy();
     await _makingCallAudioPlayer.dispose();
     await _hangUpAudioPlayer.dispose();
-    _callStateStreamController.close();
+    await _callStateStreamController.close();
   }
 }
 
@@ -135,13 +141,15 @@ class CallSuccess extends CallState {}
 class NoResponse extends CallState {}
 
 class CallFailed extends CallState {
-  final String reason;
   CallFailed({this.reason = "Nous n'avons pas pu joindre le conducteur."});
+
+  final String reason;
 }
 
 class CallLeft extends CallState {
+  CallLeft({this.reason = 'Le conducteur a raccroché'});
+
   final String reason;
-  CallLeft({this.reason = "Le conducteur a raccroché"});
 }
 
 class CallRejected extends CallState {}

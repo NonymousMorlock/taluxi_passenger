@@ -8,19 +8,23 @@ import 'package:taluxi/state_managers/call_state_manager.dart';
 import 'package:taluxi_common/taluxi_common.dart';
 
 class CallPage extends StatefulWidget {
+  const CallPage({
+    required this.callRecipients,
+    required this.currentUserId,
+    super.key,
+    this.metadataTextColor = const Color(0xAD000000),
+  });
+
   final List<Map<String, Coordinates>> callRecipients;
   final String currentUserId;
-  final metadataTextColor = const Color(0xAD000000);
-
-  const CallPage({Key key, this.callRecipients, this.currentUserId})
-      : super(key: key);
+  final Color metadataTextColor;
 
   @override
-  _CallPageState createState() => _CallPageState();
+  State<CallPage> createState() => _CallPageState();
 }
 
 class _CallPageState extends State<CallPage> {
-  CallStateManager _callStateManager;
+  late CallStateManager _callStateManager;
   var _connectionStateColorIndicator = mainLightColor;
   var _connectionStateTextIndicator = 'CONNEXION EN COURS';
   var _callMade = false;
@@ -33,7 +37,7 @@ class _CallPageState extends State<CallPage> {
     _initializeStateManager();
   }
 
-  void _initializeStateManager() async {
+  Future<void> _initializeStateManager() async {
     _callStateManager = CallStateManager(
       callRecipients: widget.callRecipients,
       currenUserId: widget.currentUserId,
@@ -51,23 +55,27 @@ class _CallPageState extends State<CallPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.sizeOf(context);
     return _callMade
         ? Scaffold(
             body: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/images/call_bg.jpg'),
                   fit: BoxFit.cover,
                 ),
               ),
-              constraints: BoxConstraints.expand(),
+              constraints: const BoxConstraints.expand(),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Column(
+                  const Column(
                     children: [
-                      Text("Selena Gomez", textScaleFactor: 2.3, maxLines: 1),
+                      Text(
+                        'Selena Gomez',
+                        textScaler: TextScaler.linear(2.3),
+                        maxLines: 1,
+                      ),
                       SizedBox(height: 25),
                       CircleAvatar(
                         backgroundImage: NetworkImage(
@@ -84,25 +92,23 @@ class _CallPageState extends State<CallPage> {
               ),
             ),
           )
-        : WaitingPage(message: 'Appel en cours');
+        : const WaitingPage(message: 'Appel en cours');
   }
 
-  Container connectionStateIndicator() {
-    return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _connectionStateTextIndicator,
-            style: TextStyle(color: widget.metadataTextColor),
-          ),
-          SizedBox(width: 12),
-          CircleAvatar(
-            backgroundColor: _connectionStateColorIndicator,
-            maxRadius: 8,
-          ),
-        ],
-      ),
+  Widget connectionStateIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          _connectionStateTextIndicator,
+          style: TextStyle(color: widget.metadataTextColor),
+        ),
+        const SizedBox(width: 12),
+        CircleAvatar(
+          backgroundColor: _connectionStateColorIndicator,
+          maxRadius: 8,
+        ),
+      ],
     );
   }
 
@@ -112,7 +118,7 @@ class _CallPageState extends State<CallPage> {
       children: [
         FloatingActionButton(
           heroTag: 'speakerButton',
-          backgroundColor: Color(0xA2009CB8),
+          backgroundColor: const Color(0xA2009CB8),
           child: Icon(
             Icons.volume_up,
             color: _speakerIsOn ? Colors.red : Colors.white,
@@ -125,7 +131,7 @@ class _CallPageState extends State<CallPage> {
         FloatingActionButton(
           heroTag: 'hangUpButton',
           backgroundColor: Colors.red,
-          child: Icon(Icons.call_end, size: 35),
+          child: const Icon(Icons.call_end, size: 35),
           onPressed: () async {
             await _callStateManager.leaveCall();
 
@@ -134,7 +140,7 @@ class _CallPageState extends State<CallPage> {
         ),
         FloatingActionButton(
           heroTag: 'microphoneButton',
-          backgroundColor: Color(0xA2009CB8),
+          backgroundColor: const Color(0xA2009CB8),
           child: Icon(
             Icons.mic_off,
             color: _microphoneIsOn ? Colors.white : Colors.red,
@@ -151,11 +157,13 @@ class _CallPageState extends State<CallPage> {
   void _handleCallState(CallState callState) {
     if (callState is CallSuccess) return setState(() => _callMade = true);
     if (callState is NoResponse) return _suggestCallingNextDriver();
-    if (callState is CallFailed)
+    if (callState is CallFailed) {
       return _suggestCallingNextDriver(callState.reason);
+    }
     if (callState is CallLeft) return _showCallEndDialog(callState.reason);
-    if (callState is CallRejected)
+    if (callState is CallRejected) {
       return _suggestCallingNextDriver("Le conducteur a raccroché l'appel");
+    }
     if (callState is AllRecipientHaveBeenCalled) _suggestToTryAgainLater();
   }
 
@@ -166,31 +174,26 @@ class _CallPageState extends State<CallPage> {
           _connectionStateTextIndicator = 'CONNEXION ÉTABLIE';
           _connectionStateColorIndicator = Colors.green;
         });
-        break;
       case VoIPConnectionState.connecting:
         setState(() {
           _connectionStateColorIndicator = mainLightColor;
           _connectionStateTextIndicator = 'CONNEXION EN COURS';
         });
-        break;
       case VoIPConnectionState.disconnected:
         setState(() {
           _connectionStateColorIndicator = Colors.red;
           _connectionStateTextIndicator = 'CONNEXION PERDUE';
         });
-        break;
       case VoIPConnectionState.reconnecting:
         setState(() {
           _connectionStateColorIndicator = mainLightLessColor;
           _connectionStateTextIndicator = 'RECONNEXION EN COURS';
         });
-        break;
-      default:
     }
   }
 
-  void _suggestCallingNextDriver([String text]) {
-    showDialog(
+  void _suggestCallingNextDriver([String? text]) {
+    showDialog<void>(
       barrierDismissible: false,
       context: context,
       builder: (context) {
@@ -198,7 +201,7 @@ class _CallPageState extends State<CallPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             final autoCallTimer = Timer(
-              Duration(seconds: 1),
+              const Duration(seconds: 1),
               () => setState(() {
                 if (--autoCallCounter == 0) {
                   Navigator.of(context).pop();
@@ -209,22 +212,24 @@ class _CallPageState extends State<CallPage> {
             return AlertDialog(
               content: Text(text ?? "Le conducteur n'a pas pris l'appel"),
               actions: [
-                RaisedButton(
+                ElevatedButton(
                   onPressed: () {
                     autoCallTimer.cancel();
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
                   },
-                  child: Text('Annulé'),
+                  child: const Text('Annulé'),
                 ),
-                RaisedButton(
-                  color: mainLightColor,
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: mainLightColor,
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                     _callStateManager.callNextRecipient();
                   },
                   child: Text('Appeler un autre ($autoCallCounter)'),
-                )
+                ),
               ],
             );
           },
@@ -233,43 +238,46 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  void _showCallEndDialog([String title]) {
-    showDialog(
+  void _showCallEndDialog([String? title]) {
+    showDialog<void>(
       barrierDismissible: false,
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text(title ?? "Vous avez raccrochez l'appel"),
-          content: Container(
-            child: Text(
-                "Êtes vous tombés d'accord avec le conducteur avant la fin de l'appel pour qu'il vienne vous conduire à votre destination ?"),
+          content: const Text(
+            "Êtes vous tombés d'accord avec le conducteur avant la fin de "
+            "l'appel pour qu'il vienne vous conduire à votre destination ?",
           ),
           actions: [
             Center(
               widthFactor: 2,
               child: Column(
                 children: [
-                  RaisedButton(
+                  ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                       _callStateManager.callNextRecipient();
                     },
-                    child: Text('Non, appeler un autre'),
+                    child: const Text('Non, appeler un autre'),
                   ),
-                  RaisedButton(
-                    onPressed: () async {
+                  ElevatedButton(
+                    onPressed: () {
                       Navigator.of(context).pop();
                       final dataOfDriverToTrack = widget.callRecipients[
                           _callStateManager.currentRecipientIndex];
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute<void>(
                           builder: (context) =>
-                              TaxiTrackingPage(dataOfDriverToTrack)));
+                              TaxiTrackingPage(dataOfDriverToTrack),
+                        ),
+                      );
                     },
-                    child: Text('Oui, afficher sa position sur la carte'),
-                  )
+                    child: const Text('Oui, afficher sa position sur la carte'),
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         );
       },
@@ -278,19 +286,20 @@ class _CallPageState extends State<CallPage> {
 
   void _suggestToTryAgainLater() {
     Navigator.of(context).pop();
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Désolé'),
+          title: const Text('Désolé'),
           content: Text(
-            'Nous avons tenté de joindre ${widget.callRecipients.length} conducteurs sans succès, veuillez réessayer plus tard.',
+            'Nous avons tenté de joindre ${widget.callRecipients.length} '
+            'conducteurs sans succès, veuillez réessayer plus tard.',
           ),
           actions: [
-            RaisedButton(
+            ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Ok'),
-            )
+              child: const Text('Ok'),
+            ),
           ],
         );
       },

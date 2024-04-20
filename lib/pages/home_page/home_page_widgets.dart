@@ -1,31 +1,30 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:taluxi_common/taluxi_common.dart';
 
 class CustomElevatedButton extends StatefulWidget {
+  const CustomElevatedButton({
+    required this.child,
+    super.key,
+    this.elevation = 6,
+    this.width,
+    this.height,
+    this.onTap,
+  });
+
   final Widget child;
-  final double width;
-  final double height;
-  final double elevation;
-  final VoidCallback onTap;
-  const CustomElevatedButton(
-      {Key key,
-      this.elevation = 6,
-      this.child,
-      this.width,
-      this.height,
-      this.onTap})
-      : super(key: key);
+  final double? width;
+  final double? height;
+  final double? elevation;
+  final VoidCallback? onTap;
 
   @override
-  _CustomElevatedButtonState createState() => _CustomElevatedButtonState();
+  State<CustomElevatedButton> createState() => _CustomElevatedButtonState();
 }
 
 class _CustomElevatedButtonState extends State<CustomElevatedButton> {
-  double buttonElevation;
+  double? buttonElevation;
   bool buttonIsDown = false;
-  final double buttonRaduis = 12;
+  final double buttonRadius = 12;
 
   @override
   void initState() {
@@ -36,44 +35,46 @@ class _CustomElevatedButtonState extends State<CustomElevatedButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      child: Container(
+      child: SizedBox(
         width: widget.width,
-        height: widget.height + widget.elevation,
+        height: widget.height != null
+            ? widget.height! + (widget.elevation ?? 0)
+            : null,
         child: Stack(
           children: [
             Positioned(
-              child: Container(
-                height: widget.height,
-                width: widget.width,
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: const [Color(0xFFE0A500), Color(0xFFDF7E00)]),
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(buttonRaduis)),
-              ),
               bottom: 0,
-            ),
-            AnimatedPositioned(
               child: Container(
-                width: widget.width,
                 height: widget.height,
-                child: Center(child: widget.child),
+                width: widget.width,
                 decoration: BoxDecoration(
-                  gradient: mainLinearGradient,
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(buttonRaduis),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE0A500), Color(0xFFDF7E00)],
+                  ),
+                  borderRadius: BorderRadius.circular(buttonRadius),
                 ),
               ),
+            ),
+            AnimatedPositioned(
               bottom: buttonElevation,
-              duration: Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 350),
               onEnd: () {
-                if (buttonIsDown) widget.onTap();
+                if (buttonIsDown) widget.onTap?.call();
                 setState(() {
                   buttonElevation = widget.elevation;
                   buttonIsDown = false;
                 });
               },
-            )
+              child: Container(
+                width: widget.width,
+                height: widget.height,
+                decoration: BoxDecoration(
+                  gradient: mainLinearGradient,
+                  borderRadius: BorderRadius.circular(buttonRadius),
+                ),
+                child: Center(child: widget.child),
+              ),
+            ),
           ],
         ),
       ),

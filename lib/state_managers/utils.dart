@@ -11,15 +11,31 @@ List<Map<String, Coordinates>> sortLocationsByDistance(
     locations,
     _compareKeys,
   ).values.toList();
-  locationsSortedByDistance.forEach((location) {
-    sortedLocationsList
-        .add({location.keys.first: _mapToCoordinates(location.values.first)});
-  });
+  for (final location in locationsSortedByDistance) {
+    location as Map;
+    sortedLocationsList.add(
+      {
+        location.keys.first as String: _mapToCoordinates(
+          location.values.first as Map<String, dynamic>,
+        ),
+      },
+    );
+  }
   return sortedLocationsList;
 }
 
-Coordinates _mapToCoordinates(coordinatesAsMap) => Coordinates(
-    latitude: coordinatesAsMap['lat'], longitude: coordinatesAsMap['lon']);
+Coordinates _mapToCoordinates(Map<String, dynamic> coordinatesAsMap) =>
+    Coordinates(
+      latitude: coordinatesAsMap['lat'] as double,
+      longitude: coordinatesAsMap['lon'] as double,
+    );
 
-int _compareKeys(first, second) =>
-    (double.tryParse(first) - double.tryParse(second)).toInt();
+int _compareKeys(String first, String second) {
+  // (double.tryParse(first) - double.tryParse(second)).toInt();
+  final firstDouble = double.tryParse(first);
+  final secondDouble = double.tryParse(second);
+  if (firstDouble == null || secondDouble == null) {
+    throw ArgumentError('The keys must be double parsable');
+  }
+  return (firstDouble - secondDouble).toInt();
+}

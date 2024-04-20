@@ -2,34 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:real_time_location/real_time_location.dart';
 import 'package:taluxi/pages/call_page.dart';
+import 'package:taluxi/pages/home_page/home_page_widgets.dart';
 import 'package:taluxi/state_managers/taxi_finder.dart';
 import 'package:taluxi_common/taluxi_common.dart';
 import 'package:user_manager/user_manager.dart';
 
-import 'home_page_widgets.dart';
-
-final customWhiteColor = Color(0xF5FCFAFA);
+const customWhiteColor = Color(0xF5FCFAFA);
 
 //TODO Refactoring : extracted widgets for better names.
 // ignore: must_be_immutable
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  AuthenticationProvider _authProvider;
-  TaxiFinder _taxiFinder;
-  User _user;
+  late AuthenticationProvider _authProvider;
+  late TaxiFinder _taxiFinder;
+  User? _user;
 
   @override
   void initState() {
     super.initState();
-    _authProvider = Provider.of<AuthenticationProvider>(context, listen: false);
+    _authProvider = context.read<AuthenticationProvider>();
     _taxiFinder = TaxiFinder(
-      realTimeLocation: Provider.of<RealTimeLocation>(context, listen: false),
+      realTimeLocation: context.read<RealTimeLocation>(),
     );
     _user = _authProvider.user;
     _taxiFinder.taxiFinderState.listen(_manageTaxiFinderState);
@@ -43,42 +42,59 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final deviceSize = MediaQuery.of(context).size;
-    final floatingActionButtonSize = deviceSize.height * 0.084;
-    final userHasPhoto = (_authProvider.user.photoUrl != null &&
-        _authProvider.user.photoUrl.isNotEmpty);
-    return Scaffold(
-      body: Builder(
-        builder: (BuildContext context) => Stack(children: [
-          Container(
-            decoration: BoxDecoration(gradient: mainLinearGradient),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _headerContainer(deviceSize),
-                BottomRoundedContainer(
-                  deviceSize: deviceSize,
-                  topBorderRadius: Radius.circular(40),
-                )
-              ],
+    if (_user == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            "Vous n'êtes pas connecté",
+            textScaler: TextScaler.linear(2.5),
+            style: TextStyle(
+              color: customWhiteColor,
+              fontFamily: 'PatuaOne',
             ),
           ),
-          _userPhoto(userHasPhoto),
-          _menuButton(context)
-        ]),
+        ),
+      );
+    }
+
+    final deviceSize = MediaQuery.of(context).size;
+    final floatingActionButtonSize = deviceSize.height * 0.084;
+    final userHasPhoto = _authProvider.user!.photoUrl != null &&
+        _authProvider.user!.photoUrl!.isNotEmpty;
+    return Scaffold(
+      body: Builder(
+        builder: (BuildContext context) => Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(gradient: mainLinearGradient),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _headerContainer(deviceSize),
+                  BottomRoundedContainer(
+                    deviceSize: deviceSize,
+                    topBorderRadius: const Radius.circular(40),
+                  ),
+                ],
+              ),
+            ),
+            _userPhoto(userHasPhoto),
+            _menuButton(context),
+          ],
+        ),
       ),
-      endDrawer: CustomDrower(),
+      endDrawer: const CustomDrawer(),
       floatingActionButton: Container(
+        margin: EdgeInsets.only(bottom: deviceSize.height * .09),
         child: CustomElevatedButton(
-          child: Logo(backgroundColorIsOrange: true, fontSize: 43),
           height: floatingActionButtonSize,
           width: floatingActionButtonSize * 2.25,
           onTap: () async {
-            await _taxiFinder.initialize(currentUserId: _user.uid);
-            _taxiFinder.findNearest();
+            await _taxiFinder.initialize(currentUserId: _user!.uid);
+            await _taxiFinder.findNearest();
           },
+          child: Logo(backgroundColorIsOrange: true, fontSize: 43),
         ),
-        margin: EdgeInsets.only(bottom: deviceSize.height * .09),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -94,7 +110,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(9),
         ),
         child: IconButton(
-          icon: Icon(Icons.menu),
+          icon: const Icon(Icons.menu),
           onPressed: () => Scaffold.of(context).openEndDrawer(),
         ),
       ),
@@ -109,16 +125,16 @@ class _HomePageState extends State<HomePage> {
         height: 48,
         width: 49,
         decoration: BoxDecoration(
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               blurRadius: 5,
               offset: Offset(0, 2),
               color: Colors.black12,
-            )
+            ),
           ],
           image: userHasPhoto
               ? DecorationImage(
-                  image: NetworkImage(_user.photoUrl),
+                  image: NetworkImage(_user!.photoUrl!),
                   fit: BoxFit.cover,
                 )
               : null,
@@ -127,7 +143,7 @@ class _HomePageState extends State<HomePage> {
         ),
         child: userHasPhoto
             ? null
-            : Icon(Icons.person, color: Colors.black38, size: 43),
+            : const Icon(Icons.person, color: Colors.black38, size: 43),
       ),
     );
   }
@@ -135,24 +151,29 @@ class _HomePageState extends State<HomePage> {
   Widget _headerContainer(Size deviceSize) {
     return Padding(
       padding: EdgeInsets.only(
-          top: deviceSize.width * 0.35,
-          right: deviceSize.width * 0.11,
-          left: 10),
+        top: deviceSize.width * 0.35,
+        right: deviceSize.width * 0.11,
+        left: 10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Bienvenue",
-            textScaleFactor: 3.4,
+          const Text(
+            'Bienvenue',
+            textScaler: TextScaler.linear(3.4),
             style: TextStyle(fontFamily: 'PatuaOne', color: customWhiteColor),
           ),
-          Center(
-            child: Text(
-              _user.formatedName,
-              textScaleFactor: 2.9,
-              style: TextStyle(fontFamily: 'PatuaOne', color: customWhiteColor),
+          if (_user case User(formatedName: final String formattedName))
+            Center(
+              child: Text(
+                formattedName,
+                textScaler: const TextScaler.linear(2.9),
+                style: const TextStyle(
+                  fontFamily: 'PatuaOne',
+                  color: customWhiteColor,
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -163,17 +184,18 @@ class _HomePageState extends State<HomePage> {
       _callTaxisFound(taxiFinderState.taxiDriversFound);
     } else if (taxiFinderState is TaxiNotFound) {
       _showTaxiNotFoundDialog();
-    } else
+    } else {
       showWaitDialog("Recherche d'un taxi disponible", context);
+    }
   }
 
   void _callTaxisFound(List<Map<String, Coordinates>> taxiDriversFound) {
     Navigator.of(context).pop(); // Pop the progress dialog
     Navigator.of(context).push(
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => CallPage(
           callRecipients: taxiDriversFound,
-          currentUserId: _user.uid,
+          currentUserId: _user!.uid,
         ),
       ),
     );
@@ -181,23 +203,25 @@ class _HomePageState extends State<HomePage> {
 
   void _showTaxiNotFoundDialog() {
     Navigator.of(context).pop(); // Pop the progress dialog
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Indisponible'),
-          content: Text(
-            "Désolé, aucun conducteur n'est connecté dans la zone où vous vous trouvez actuellement, mais vous pouvez élargir la zone de recherche.",
+          title: const Text('Indisponible'),
+          content: const Text(
+            "Désolé, aucun conducteur n'est connecté dans la zone où vous "
+            'vous trouvez actuellement, mais vous pouvez élargir '
+            'la zone de recherche.',
           ),
           actions: [
-            RaisedButton(
-              child: Text('Élargir la zone'),
+            ElevatedButton(
+              child: const Text('Élargir la zone'),
               onPressed: () {},
             ),
-            RaisedButton(
-              child: Text('Fermer'),
-              onPressed: () => Navigator.of(context).pop(),
-            )
+            ElevatedButton(
+              onPressed: Navigator.of(context).pop,
+              child: const Text('Fermer'),
+            ),
           ],
         );
       },
@@ -207,10 +231,10 @@ class _HomePageState extends State<HomePage> {
 
 class BottomRoundedContainer extends StatelessWidget {
   const BottomRoundedContainer({
-    Key key,
-    @required this.deviceSize,
-    @required this.topBorderRadius,
-  }) : super(key: key);
+    required this.deviceSize,
+    required this.topBorderRadius,
+    super.key,
+  });
 
   final Size deviceSize;
   final Radius topBorderRadius;
@@ -219,7 +243,7 @@ class BottomRoundedContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: deviceSize.height * 0.65,
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: customWhiteColor,
         borderRadius: BorderRadius.only(
@@ -228,15 +252,18 @@ class BottomRoundedContainer extends StatelessWidget {
         ),
       ),
       child: Container(
-        margin: EdgeInsets.only(top: 34),
-        padding: EdgeInsets.all(10),
+        margin: const EdgeInsets.only(top: 34),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
           padding: EdgeInsets.only(left: deviceSize.width * 0.025),
-          child: Text(
-            "Pour trouver un taxi, vous avez juste à cliquez sur le bouton ci-dessous on s'occupera de vous mettre en contact avec le taxi le plus proche de l'endroit où vous vous trouvez actuellement.",
+          child: const Text(
+            'Pour trouver un taxi, vous avez juste à cliquez sur le '
+            "bouton ci-dessous on s'occupera de vous mettre en contact"
+            " avec le taxi le plus proche de l'endroit où vous vous "
+            'trouvez actuellement.',
             textScaleFactor: 1.55,
             style: TextStyle(
               fontFamily: 'Roboto',

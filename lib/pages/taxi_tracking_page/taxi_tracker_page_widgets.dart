@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 import 'package:taluxi_common/taluxi_common.dart';
 
 class CurvedNavigationBar extends StatefulWidget {
-  final List<Widget> items;
-  final int index;
-  final Color color;
-  final Color buttonBackgroundColor;
-  final Color backgroundColor;
-  final ValueChanged<int> onTap;
-  final Curve animationCurve;
-  final Duration animationDuration;
-  final double height;
-
   CurvedNavigationBar({
-    Key key,
-    @required this.items,
+    required this.items,
+    super.key,
     this.index = 0,
     this.color = Colors.white,
     this.buttonBackgroundColor,
@@ -24,11 +13,25 @@ class CurvedNavigationBar extends StatefulWidget {
     this.animationCurve = Curves.easeOut,
     this.animationDuration = const Duration(milliseconds: 600),
     this.height = 75.0,
-  })  : assert(items != null),
-        assert(items.length >= 1),
-        assert(0 <= index && index < items.length),
-        assert(0 <= height && height <= 75.0),
-        super(key: key);
+  })  : assert(items.isNotEmpty, 'items list must not be empty'),
+        assert(
+          0 <= index && index < items.length,
+          'index must be in the '
+          'range of items list',
+        ),
+        assert(
+            0 <= height && height <= 75.0,
+            'height must be in the range of '
+            '0 to 75.0');
+  final List<Widget> items;
+  final int index;
+  final Color color;
+  final Color? buttonBackgroundColor;
+  final Color backgroundColor;
+  final ValueChanged<int>? onTap;
+  final Curve animationCurve;
+  final Duration animationDuration;
+  final double height;
 
   @override
   CurvedNavigationBarState createState() => CurvedNavigationBarState();
@@ -36,13 +39,13 @@ class CurvedNavigationBar extends StatefulWidget {
 
 class CurvedNavigationBarState extends State<CurvedNavigationBar>
     with SingleTickerProviderStateMixin {
-  double _startingPos;
+  late double _startingPos;
   int _endingIndex = 0;
-  double _pos;
+  late double _pos;
   double _buttonHide = 0;
-  Widget _icon;
-  AnimationController _animationController;
-  int _length;
+  late Widget _icon;
+  late AnimationController _animationController;
+  late int _length;
 
   @override
   void initState() {
@@ -73,8 +76,11 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
       final newPosition = widget.index / _length;
       _startingPos = _pos;
       _endingIndex = widget.index;
-      _animationController.animateTo(newPosition,
-          duration: widget.animationDuration, curve: widget.animationCurve);
+      _animationController.animateTo(
+        newPosition,
+        duration: widget.animationDuration,
+        curve: widget.animationCurve,
+      );
     }
   }
 
@@ -86,12 +92,12 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
     return Container(
       color: widget.backgroundColor,
       height: widget.height,
       child: Stack(
-        overflow: Overflow.visible,
+        clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
         children: <Widget>[
           Positioned(
@@ -110,13 +116,13 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
                   -(1 - _buttonHide) * 80,
                 ),
                 child: Container(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _icon,
-                  ),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: mainLinearGradient,
                     shape: BoxShape.circle,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: _icon,
                   ),
                 ),
               ),
@@ -128,9 +134,13 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
             bottom: 0 - (75.0 - widget.height),
             child: CustomPaint(
               painter: NavCustomPainter(
-                  _pos, _length, widget.color, Directionality.of(context)),
+                _pos,
+                _length,
+                widget.color,
+                Directionality.of(context),
+              ),
               child: Container(
-                height: 75.0,
+                height: 75,
               ),
             ),
           ),
@@ -139,9 +149,9 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
             right: 0,
             bottom: 0 - (75.0 - widget.height),
             child: SizedBox(
-                height: 100.0,
-                child: Row(
-                    children: widget.items.map((item) {
+              height: 100,
+              child: Row(
+                children: widget.items.map((item) {
                   return NavButton(
                     onTap: _buttonTap,
                     position: _pos,
@@ -149,7 +159,9 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
                     index: widget.items.indexOf(item),
                     child: Center(child: item),
                   );
-                }).toList())),
+                }).toList(),
+              ),
+            ),
           ),
         ],
       ),
@@ -161,27 +173,35 @@ class CurvedNavigationBarState extends State<CurvedNavigationBar>
   }
 
   void _buttonTap(int index) {
-    if (widget.onTap != null) {
-      widget.onTap(index);
-    }
+    widget.onTap?.call(index);
     final newPosition = index / _length;
     setState(() {
       _startingPos = _pos;
       _endingIndex = index;
-      _animationController.animateTo(newPosition,
-          duration: widget.animationDuration, curve: widget.animationCurve);
+      _animationController.animateTo(
+        newPosition,
+        duration: widget.animationDuration,
+        curve: widget.animationCurve,
+      );
     });
   }
 }
 
 class NavButton extends StatelessWidget {
+  const NavButton({
+    required this.position,
+    required this.length,
+    required this.index,
+    required this.child,
+    super.key,
+    this.onTap,
+  });
+
   final double position;
   final int length;
   final int index;
-  final ValueChanged<int> onTap;
+  final ValueChanged<int>? onTap;
   final Widget child;
-
-  NavButton({this.onTap, this.position, this.length, this.index, this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -193,36 +213,43 @@ class NavButton extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          onTap(index);
+          onTap?.call(index);
         },
-        child: Container(
-            height: 75.0,
-            child: Transform.translate(
-              offset: Offset(
-                  0, difference < 1.0 / length ? verticalAlignment * 40 : 0),
-              child: Opacity(
-                opacity: difference < 1.0 / length * 0.99 ? opacity : 1.0,
-                child: child,
-              ),
-            )),
+        child: SizedBox(
+          height: 75,
+          child: Transform.translate(
+            offset: Offset(
+              0,
+              difference < 1.0 / length ? verticalAlignment * 40 : 0,
+            ),
+            child: Opacity(
+              opacity: difference < 1.0 / length * 0.99 ? opacity : 1.0,
+              child: child,
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
 class NavCustomPainter extends CustomPainter {
-  double loc;
-  double s;
-  Color color;
-  TextDirection textDirection;
-
   NavCustomPainter(
-      double startingLoc, int itemsLength, this.color, this.textDirection) {
+    double startingLoc,
+    int itemsLength,
+    this.color,
+    this.textDirection,
+  ) {
     final span = 1.0 / itemsLength;
     s = 0.2;
-    double l = startingLoc + (span - s) / 2;
+    final l = startingLoc + (span - s) / 2;
     loc = textDirection == TextDirection.rtl ? 0.8 - l : l;
   }
+
+  late double loc;
+  late double s;
+  Color color;
+  TextDirection textDirection;
 
   @override
   void paint(Canvas canvas, Size size) {

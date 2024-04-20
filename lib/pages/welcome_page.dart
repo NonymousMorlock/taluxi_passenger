@@ -6,21 +6,21 @@ import 'package:taluxi_common/taluxi_common.dart';
 import 'package:user_manager/user_manager.dart';
 
 class WelcomePage extends StatefulWidget {
-  const WelcomePage();
+  const WelcomePage({super.key});
 
   @override
-  _WelcomePageState createState() => _WelcomePageState();
+  State<WelcomePage> createState() => _WelcomePageState();
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  AuthenticationProvider authProvider;
+  late AuthenticationProvider authProvider;
   bool waitDialogIsShown = false;
   bool signInRequested = false;
-  final _buttonTextStyle = TextStyle(fontSize: 20, color: Colors.white);
+  final _buttonTextStyle = const TextStyle(fontSize: 20, color: Colors.white);
 
   @override
   Widget build(BuildContext context) {
-    authProvider = Provider.of<AuthenticationProvider>(context, listen: true);
+    authProvider = Provider.of<AuthenticationProvider>(context);
     if (authProvider.authState == AuthState.authenticating && signInRequested) {
       Future.delayed(Duration.zero, () async {
         waitDialogIsShown = true;
@@ -28,13 +28,13 @@ class _WelcomePageState extends State<WelcomePage> {
         signInRequested = false;
       });
     }
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.sizeOf(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             image: DecorationImage(
               colorFilter:
                   ColorFilter.mode(Color(0x65010101), BlendMode.luminosity),
@@ -45,28 +45,31 @@ class _WelcomePageState extends State<WelcomePage> {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Logo(
                   fontSize: 60,
                   taxiColor: Colors.white,
-                  luxeColor: Color(0xFFFFAE00),
+                  luxeColor: const Color(0xFFFFAE00),
                 ),
                 SizedBox(height: screenSize.height * .17),
                 _loginButton(),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 _signUpButton(),
-                SizedBox(height: 20),
-                CustomDivider(),
-                FacebookLoginButton(onClick: () async {
-                  signInRequested = true;
-                  await authProvider
-                      .signInWithFacebook()
-                      .then((_) => Navigator.of(context)
-                          .popUntil((route) => route.isFirst))
-                      .catchError(_onSignInError);
-                }),
+                const SizedBox(height: 20),
+                const CustomDivider(),
+                FacebookLoginButton(
+                  onClick: () async {
+                    signInRequested = true;
+                    await authProvider
+                        .signInWithFacebook()
+                        .then(
+                          (_) => Navigator.of(context)
+                              .popUntil((route) => route.isFirst),
+                        )
+                        .catchError(_onSignInError);
+                  },
+                ),
               ],
             ),
           ),
@@ -75,25 +78,25 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-  void _onSignInError(error) async {
+  Future<void> _onSignInError(Object error) async {
     if (waitDialogIsShown) {
       Navigator.of(context).pop();
       waitDialogIsShown = false;
     }
-    return await showDialog(
+    return showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: Text('Echec de la connexion'),
-          content: Text(error.message),
+          title: const Text('Echec de la connexion'),
+          content: Text(error.toString()),
           actions: [
             Center(
-              child: RaisedButton(
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Fermer'),
+                child: const Text('Fermer'),
               ),
             ),
           ],
@@ -107,25 +110,25 @@ class _WelcomePageState extends State<WelcomePage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (context) =>
                 ChangeNotifierProvider<AuthenticationProvider>.value(
               value: authProvider,
-              child: AuthenticationPage(authType: AuthType.login),
+              child: const AuthenticationPage(authType: AuthType.login),
             ),
           ),
         );
       },
       child: Container(
         width: MediaQuery.of(context).size.width,
-        padding: EdgeInsets.symmetric(vertical: 14.5),
+        padding: const EdgeInsets.symmetric(vertical: 14.5),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(5)),
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: Color(0xffdf8e33).withAlpha(100),
-              offset: Offset(2, 4),
+              color: const Color(0xffdf8e33).withAlpha(100),
+              offset: const Offset(2, 4),
               blurRadius: 8,
               spreadRadius: 2,
             ),
@@ -145,22 +148,22 @@ class _WelcomePageState extends State<WelcomePage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (context) =>
                 ChangeNotifierProvider<AuthenticationProvider>.value(
               value: authProvider,
-              child: AuthenticationPage(authType: AuthType.signUp),
+              child: const AuthenticationPage(authType: AuthType.signUp),
             ),
           ),
         );
       },
       child: Container(
         width: MediaQuery.of(context).size.width,
-        padding: EdgeInsets.symmetric(vertical: 13),
+        padding: const EdgeInsets.symmetric(vertical: 13),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Color(0x10000000),
-          borderRadius: BorderRadius.all(Radius.circular(5)),
+          color: const Color(0x10000000),
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Text(
@@ -173,29 +176,28 @@ class _WelcomePageState extends State<WelcomePage> {
 }
 
 class CustomDivider extends StatelessWidget {
-  const CustomDivider({
-    Key key,
-  }) : super(key: key);
-
-  final divider = const Expanded(
-    child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      child: Divider(
-        color: Colors.white,
-        thickness: 1,
-      ),
-    ),
-  );
+  const CustomDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      divider,
-      Text(
-        "ou",
-        style: TextStyle(color: Colors.white),
+    const divider = Expanded(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        child: Divider(
+          color: Colors.white,
+          thickness: 1,
+        ),
       ),
-      divider
-    ]);
+    );
+    return const Row(
+      children: [
+        divider,
+        Text(
+          'ou',
+          style: TextStyle(color: Colors.white),
+        ),
+        divider,
+      ],
+    );
   }
 }

@@ -9,8 +9,10 @@ environment:
   sdk: ">=3.1.0 <4.0.0"
 
 dependencies:
+  cupertino_icons: ^1.0.0
   flutter:
     sdk: flutter
+  google_maps_flutter: ^2.6.1
   network_communication:
     git:
       url: https://github.com/NonymousMorlock/taluxi_network_communication.git
@@ -26,8 +28,6 @@ dependencies:
     git:
       url: https://github.com/NonymousMorlock/taluxi_user_manager.git
       ref: main
-  cupertino_icons: ^1.0.0
-  google_maps_flutter: ^2.6.1
   provider: ^6.1.2
 
 dev_dependencies:

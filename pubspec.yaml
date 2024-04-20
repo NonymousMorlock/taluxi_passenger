@@ -17,6 +17,7 @@ dependencies:
     git:
       url: https://github.com/NonymousMorlock/taluxi_network_communication.git
       ref: main
+  provider: ^6.1.2
   real_time_location:
     git:
       url: https://github.com/NonymousMorlock/taluxi_real_time_location.git
@@ -28,7 +29,6 @@ dependencies:
     git:
       url: https://github.com/NonymousMorlock/taluxi_user_manager.git
       ref: main
-  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:

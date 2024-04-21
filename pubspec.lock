@@ -537,13 +537,14 @@ packages:
     source: hosted
     version: "4.0.2"
   iris_method_channel:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: iris_method_channel
-      sha256: "78caede20be4a1dd258262fb13704aab2f16fd05ef414bed06e7b1e3b95b3413"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
+      path: "."
+      ref: "littlegnal/android-github-runner-linux"
+      resolved-ref: "36b86ded607e84ba4995430ed280afb7480b69c3"
+      url: "https://github.com/AgoraIO-Extensions/iris_method_channel_flutter.git"
+    source: git
+    version: "1.1.0-rc.3"
   js:
     dependency: transitive
     description:
@@ -669,7 +670,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: d7d2b70f3964128048ade4673fcca97d880529c9
+      resolved-ref: dbe3c6744b045c3ab31e4a5fd56b4790b0bffc47
       url: "https://github.com/NonymousMorlock/taluxi_network_communication.git"
     source: git
     version: "1.0.0"

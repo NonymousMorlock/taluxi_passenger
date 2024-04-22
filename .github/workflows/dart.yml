@@ -28,6 +28,16 @@ jobs:
           echo "ONESIGNAL_APP_ID=${{ secrets.oneSignalAppId }}" >> $GITHUB_ENV
         shell: bash
 
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v2
+        with:
+          path: | 
+            ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml', '**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+
       - run: flutter pub get
 
       - run: flutter build apk --release --dart-define=AGORA_APP_ID=$AGORA_APP_ID --dart-define=ONESIGNAL_APP_ID=$ONESIGNAL_APP_ID

@@ -1,4 +1,4 @@
-package com.taluxi_passenger
+package com.taluxi
 
 import io.flutter.embedding.android.FlutterActivity
 

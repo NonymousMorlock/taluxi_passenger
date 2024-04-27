@@ -5,8 +5,18 @@ import 'package:provider/provider.dart';
 import 'package:taluxi_common/taluxi_common.dart';
 import 'package:user_manager/user_manager.dart';
 
+// a map of all french words used here and their english meanings
+final frenchWords = <String, String>{
+  'Connexion en cours': 'Signing in',
+  'Echec de la connexion': 'Sign in failed',
+  'Fermer': 'Close',
+  'Se connecter': 'Sign in',
+  'Créer un compte': 'Create an account',
+  'ou': 'or',
+};
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
+
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -24,7 +34,7 @@ class _WelcomePageState extends State<WelcomePage> {
     if (authProvider.authState == AuthState.authenticating && signInRequested) {
       Future.delayed(Duration.zero, () async {
         waitDialogIsShown = true;
-        showWaitDialog('Connexion en cours', context);
+        showWaitDialog(frenchWords['Connexion en cours']!, context);
         signInRequested = false;
       });
     }
@@ -88,7 +98,7 @@ class _WelcomePageState extends State<WelcomePage> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Echec de la connexion'),
+          title: Text(frenchWords['Echec de la connexion']!),
           content: Text(error.toString()),
           actions: [
             Center(
@@ -96,7 +106,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text('Fermer'),
+                child: Text(frenchWords['Fermer']!),
               ),
             ),
           ],
@@ -136,7 +146,7 @@ class _WelcomePageState extends State<WelcomePage> {
           gradient: mainLinearGradient,
         ),
         child: Text(
-          'Se connecter',
+          frenchWords['Se connecter']!,
           style: _buttonTextStyle,
         ),
       ),
@@ -167,7 +177,7 @@ class _WelcomePageState extends State<WelcomePage> {
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Text(
-          'Créer un compte',
+          frenchWords['Créer un compte']!,
           style: _buttonTextStyle,
         ),
       ),
@@ -189,12 +199,12 @@ class CustomDivider extends StatelessWidget {
         ),
       ),
     );
-    return const Row(
+    return Row(
       children: [
         divider,
         Text(
-          'ou',
-          style: TextStyle(color: Colors.white),
+          frenchWords['ou']!,
+          style: const TextStyle(color: Colors.white),
         ),
         divider,
       ],

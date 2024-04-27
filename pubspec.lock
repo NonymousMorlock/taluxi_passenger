@@ -932,7 +932,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "985705b2c6c9e29b5236c70f2cc07a93d58e5b50"
+      resolved-ref: "1a7be9032445f31b02bb8866a057554c32000dd3"
       url: "https://github.com/NonymousMorlock/taluxi_common.git"
     source: git
     version: "1.0.0"

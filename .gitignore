@@ -42,3 +42,4 @@ app.*.map.json
 
 # static analysis configs.
 analysis_options.yaml
+*google-services.json

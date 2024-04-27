@@ -14,9 +14,9 @@ final frenchWords = <String, String>{
   'Créer un compte': 'Create an account',
   'ou': 'or',
 };
+
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
-
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -28,13 +28,29 @@ class _WelcomePageState extends State<WelcomePage> {
   bool signInRequested = false;
   final _buttonTextStyle = const TextStyle(fontSize: 20, color: Colors.white);
 
+  final useFrench = false;
+
+  List<String> words = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // final words = frenchWords.entries.toList();
+    if (useFrench) {
+      words = frenchWords.keys.toList();
+    } else {
+      words = frenchWords.values.toList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     authProvider = Provider.of<AuthenticationProvider>(context);
     if (authProvider.authState == AuthState.authenticating && signInRequested) {
       Future.delayed(Duration.zero, () async {
         waitDialogIsShown = true;
-        showWaitDialog(frenchWords['Connexion en cours']!, context);
+        showWaitDialog(words[0], context);
         signInRequested = false;
       });
     }
@@ -67,7 +83,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 const SizedBox(height: 20),
                 _signUpButton(),
                 const SizedBox(height: 20),
-                const CustomDivider(),
+                CustomDivider(text: words[5],),
                 FacebookLoginButton(
                   onClick: () async {
                     signInRequested = true;
@@ -98,7 +114,7 @@ class _WelcomePageState extends State<WelcomePage> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: Text(frenchWords['Echec de la connexion']!),
+          title: Text(words[1]),
           content: Text(error.toString()),
           actions: [
             Center(
@@ -106,7 +122,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text(frenchWords['Fermer']!),
+                child: Text(words[2]),
               ),
             ),
           ],
@@ -146,7 +162,7 @@ class _WelcomePageState extends State<WelcomePage> {
           gradient: mainLinearGradient,
         ),
         child: Text(
-          frenchWords['Se connecter']!,
+          words[3],
           style: _buttonTextStyle,
         ),
       ),
@@ -177,7 +193,7 @@ class _WelcomePageState extends State<WelcomePage> {
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Text(
-          frenchWords['Créer un compte']!,
+          words[4],
           style: _buttonTextStyle,
         ),
       ),
@@ -186,7 +202,9 @@ class _WelcomePageState extends State<WelcomePage> {
 }
 
 class CustomDivider extends StatelessWidget {
-  const CustomDivider({super.key});
+  const CustomDivider({required this.text, super.key,});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +221,7 @@ class CustomDivider extends StatelessWidget {
       children: [
         divider,
         Text(
-          frenchWords['ou']!,
+          text,
           style: const TextStyle(color: Colors.white),
         ),
         divider,

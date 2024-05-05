@@ -62,8 +62,10 @@ class _WelcomePageState extends State<WelcomePage> {
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
             image: DecorationImage(
-              colorFilter:
-                  ColorFilter.mode(Color(0x65010101), BlendMode.luminosity),
+              colorFilter: ColorFilter.mode(
+                Color(0x65010101),
+                BlendMode.luminosity,
+              ),
               fit: BoxFit.cover,
               image: AssetImage('assets/images/bg.jpg'),
             ),
@@ -83,7 +85,9 @@ class _WelcomePageState extends State<WelcomePage> {
                 const SizedBox(height: 20),
                 _signUpButton(),
                 const SizedBox(height: 20),
-                CustomDivider(text: words[5],),
+                CustomDivider(
+                  text: words[5],
+                ),
                 FacebookLoginButton(
                   onClick: () async {
                     signInRequested = true;
@@ -202,7 +206,10 @@ class _WelcomePageState extends State<WelcomePage> {
 }
 
 class CustomDivider extends StatelessWidget {
-  const CustomDivider({required this.text, super.key,});
+  const CustomDivider({
+    required this.text,
+    super.key,
+  });
 
   final String text;
 

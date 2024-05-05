@@ -196,7 +196,8 @@ class _TaxiTrackingPageState extends State<TaxiTrackingPage> {
 
   Future<void> _goToTheLake() async {
     final controller = await _mapController.future;
-    await controller
-        .animateCamera(CameraUpdate.newCameraPosition(TaxiTrackingPage._kLake));
+    await controller.animateCamera(
+      CameraUpdate.newCameraPosition(TaxiTrackingPage._kLake),
+    );
   }
 }
